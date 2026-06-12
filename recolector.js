@@ -1,6 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Recogemos las credenciales ocultas de forma segura del sistema
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY; 
 const ESIOS_TOKEN = process.env.ESIOS_TOKEN;
@@ -10,7 +9,7 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 async function recolectarPreciosDeManana() {
     const hoy = new Date();
     const mañana = new Date(hoy);
-    mañana.setDate(hoy.getDate() + 0); // Lo dejamos en +0 para actualizar HOY con los precios reales
+    mañana.setDate(hoy.getDate() + 0); // Mantén +0 para probar HOY; cambia a +1 para producción
     const fechaStr = mañana.toISOString().split('T')[0];
 
     console.log(`🤖 Iniciando descarga para la fecha: ${fechaStr}...`);
@@ -38,21 +37,23 @@ async function recolectarPreciosDeManana() {
 
         const array24Precios = new Array(24).fill(0);
         valoresHorarios.forEach(v => {
-            const hora = new Date(v.datetime).getHours();
+            // FIJACIÓN HORARIA: Cortamos el texto de la fecha (ej: "14:00") para evitar el desfase del servidor
+            const horaLocal = parseInt(v.datetime.substring(11, 13), 10);
             
-            // CORRECCIÓN: Convertimos de €/MWh a €/kWh (dividiendo entre 1000) y dejamos 5 decimales limpios
-            const precioKWh = v.value / 1000;
-            array24Precios[hora] = Math.round(precioKWh * 100000) / 100000;
+            if (horaLocal >= 0 && horaLocal < 24) {
+                const precioKWh = v.value / 1000; // Pasamos de €/MWh a €/kWh
+                array24Precios[horaLocal] = Math.round(precioKWh * 100000) / 100000;
+            }
         });
 
-        console.log("📊 Precios reales procesados:", array24Precios);
+        console.log("📊 Precios horarios reales alineados con España:", array24Precios);
 
         const { error } = await supabase
             .from('tarifas_diarias')
             .upsert({ fecha: fechaStr, precios: array24Precios });
 
         if (error) throw error;
-        console.log(`✅ ¡Éxito! Tarifas reales guardadas en Supabase.`);
+        console.log(`✅ ¡Éxito! Tarifas reales sincronizadas en Supabase.`);
 
     } catch (err) {
         console.error("❌ Proceso abortado:", err.message);
