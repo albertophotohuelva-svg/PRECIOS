@@ -11,7 +11,7 @@ async function recolectarPreciosDeManana() {
     // 1. Calculamos la fecha de mañana en zona horaria española
     const hoy = new Date();
     const mañana = new Date(hoy);
-    mañana.setDate(hoy.getDate() + 1);
+    mañana.setDate(hoy.getDate() + 0);
     const fechaStr = mañana.toISOString().split('T')[0]; // Devuelve YYYY-MM-DD
 
     console.log(`🤖 Iniciando descarga para la fecha: ${fechaStr}...`);
