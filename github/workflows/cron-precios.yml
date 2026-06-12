@@ -1,0 +1,29 @@
+name: Recolector Diario de Precios PVPC
+
+on:
+  schedule:
+    # Se ejecuta a las 20:00 UTC (21:00h o 22:00h en España según el horario de verano/invierno)
+    - cron: '0 20 * * *'
+  workflow_dispatch: # Esto añade un botón de "Play" para que puedas probarlo a mano cuando quieras
+
+jobs:
+  cron_job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clonar repositorio
+        uses: actions/checkout@v4
+
+      - name: Instalar Node.js
+        uses: actions/workflows/node@v3
+        with:
+          node-version: 20
+
+      - name: Descargar conectores
+        run: npm install
+
+      - name: Ejecutar script extractor
+        run: node recolector.js
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          ESIOS_TOKEN: ${{ secrets.ESIOS_TOKEN }}
