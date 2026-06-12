@@ -9,7 +9,7 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 async function recolectarPreciosDeManana() {
     const hoy = new Date();
     const mañana = new Date(hoy);
-    mañana.setDate(hoy.getDate() + 0); // Mantén +0 para probar HOY; cambia a +1 para producción
+    mañana.setDate(hoy.getDate() + 1); // Mantén +0 para probar HOY; cambia a +1 para producción
     const fechaStr = mañana.toISOString().split('T')[0];
 
     console.log(`🤖 Iniciando descarga para la fecha: ${fechaStr}...`);
